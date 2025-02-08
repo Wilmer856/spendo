@@ -99,3 +99,15 @@ def edit_profile(id):
     form.username.data = user_profile.username
     form.email.data = user_profile.email
     return render_template("edit_profile.html", form=form, user_profile=user_profile)
+
+
+@app.route('/reports', methods=["GET", "POST"])
+@login_required
+def reports():
+    return render_template("reports.html")
+
+@app.route('/transactions', methods=["GET", "POST"])
+@login_required
+def transactions():
+    return render_template("transactions.html")
+

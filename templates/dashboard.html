@@ -11,6 +11,96 @@
 
 {% endfor %}
 
-<h1>Hello, {{ current_user.username }}</h1>
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Balance</div>
+                <div class="card-body">
+                    <h5 class="card-title">$2,500</h5>
+                    <p class="card-text">Your current balance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Income</div>
+                <div class="card-body">
+                    <h5 class="card-title">$4,000</h5>
+                    <p class="card-text">Income this month</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-header">Total Expenses</div>
+                <div class="card-body">
+                    <div class="card-title">$1,500</div>
+                    <p class="card-text">Expenses this month</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header">Recent Transactions</div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>02/25/2024</td>
+                                <td>🛒 Groceries</td>
+                                <td>-$50.00</td>
+                            </tr>
+                            <tr>
+                                <td>02/24/2024</td>
+                                <td>🚗 Gas</td>
+                                <td>-$30.00</td>
+                            </tr>
+                            <tr>
+                                <td>02/20/2024</td>
+                                <td>💰 Salary</td>
+                                <td>+$2,000.00</td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">Expenses by Category</div>
+                <div class="card-body">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">Spending Trends</div>
+                <div class="card-body">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <button class="btn btn-primary me-2">Add Transaction</button>
+            <button class="btn btn-secondary me-2">Settings</button>
+            <button class="btn btn-success">Export Data</button>
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}

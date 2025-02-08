@@ -7,7 +7,67 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     {% endfor %}
-    <h1>Profile</h1>
+
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body text-center">
+              <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" alt="User Profile">
+              <h4 class="card-title">John Doe</h4>
+              <p class="text-muted">{{ current_user.email }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card mb-3">
+            <div class="card-header">Update Profile</div>
+            <div class="card-body">
+              <form>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="name" value="John Doe">
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" value="{{ current_user.email }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </form>
+            </div>
+          </div>
+          <div class="card mb-3">
+            <div class="card-header">Change Password</div>
+            <div class="card-body">
+              <form>
+                <div class="mb-3">
+                    <label for="currentPassword" class="form-label">Current Password</label>
+                    <input type="password" class="form-control" id="currentPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmPassword">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Password</button>
+              </form>
+            </div>
+          </div>
+          <div class="card mb-4">
+            <div class="card-body text-center">
+              <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- <h1>Profile</h1>
     <div class="col-md-8">
         <div class="card mb-3">
           <div class="card-body">
@@ -36,6 +96,6 @@
             </div>
           </div>
         </div>
-    </div>
+    </div> -->
 
 {% endblock %}

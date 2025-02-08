@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Transactions</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="categoryFilter" class="form-label">Filter by Category</label>
+            <select id="categoryFilter" class="form-select">
+                <option value="">All</option>
+                <option value="Food">Food</option>
+                <option value="Rent">Rent</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="dateFilter" class="form-label">Filter by Date</label>
+            <input type="date" id="dateFilter" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label for="amountFilter" class="form-label">Filter by Amount</label>
+            <input type="number" id="amountFilter" class="form-control" placeholder="Enter amount">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- 🔹 Transactions Table -->
+    <div class="card">
+        <div class="card-header">Transaction History</div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionTable">
+                    <tr>
+                        <td>02/25/2024</td>
+                        <td>Groceries</td>
+                        <td>Bought vegetables</td>
+                        <td>-$50.00</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm">Edit</button>
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>02/24/2024</td>
+                        <td>Gas</td>
+                        <td>Filled up car</td>
+                        <td>-$30.00</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm">Edit</button>
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>02/20/2024</td>
+                        <td>Salary</td>
+                        <td>Monthly Paycheck</td>
+                        <td>+$2,000.00</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm">Edit</button>
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 🔹 Pagination -->
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        </ul>
+    </nav>
+</div>
+
+
+{% endblock %}

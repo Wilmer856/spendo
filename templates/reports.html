@@ -1,0 +1,80 @@
+{% extends 'base.html' %} 
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Financial Reports</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Expenses by Category</div>
+                <div class="card-body">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Top Spending Categories</div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Food & Dining</td>
+                                <td>$300</td>
+                            </tr>
+                            <tr>
+                                <td>Rent & Utilities</td>
+                                <td>$800</td>
+                            </tr>
+                            <tr>
+                                <td>Shopping</td>
+                                <td>$200</td>
+                            </tr>
+                            <tr>
+                                <td>Entertainment</td>
+                                <td>$150</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Monthly Spending Trends</div>
+                <div class="card-body">
+                    <canvas id="spendingLineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Income vs. Expenses</div>
+                <div class="card-body">
+                    <canvas id="incomeVsExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 mb-4 text-center">
+        <div class="col">
+            <button class="btn btn-success">Download Report</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
