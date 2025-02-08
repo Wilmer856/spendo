@@ -1,0 +1,72 @@
+### FLASK-SPECIFIC FILES ###
+instance/
+# Keep instance folder but ignore contents
+!instance/.gitignore 
+# Environment variables
+.env
+.webassets-cache
+db.sqlite3
+db.sqlite3-journal
+
+### PYTHON BUILD FILES ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.manifest
+*.spec
+
+### VIRTUAL ENVIRONMENTS ###
+.venv/
+venv/
+env/
+ENV/
+
+### PACKAGE MANAGEMENT ###
+Pipfile.lock
+poetry.lock
+pdm.lock
+
+### DATABASE FILES ###
+*.sqlite3
+*.sqlite3-journal
+migrations/
+
+### LOG FILES & COVERAGE REPORTS ###
+logs/
+*.log
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+### IDE & TEXT EDITOR FILES ###
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+.DS_Store
+
+### JUPYTER NOTEBOOK FILES ###
+.ipynb_checkpoints
+
+### LINTER & TYPE CHECKER CACHE FILES ###
+.mypy_cache/
+.pytest_cache/
+.pytype/
+.pyre/
+
+### PYTHON PACKAGE CACHE ###
+__pypackages__/
+
+### IGNORE PROJECT FILES
+
+build.py
+
