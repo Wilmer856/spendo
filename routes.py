@@ -1,10 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request
+from flask import Flask, render_template, redirect, url_for, flash, session, request, jsonify
 from flask_bcrypt import Bcrypt
 from app import app
 from forms import LoginForm, RegisterForm, UpdateUserForm
 from flask_login import login_required, login_user, logout_user, current_user
 from models import db
-from models import User
+from models import User, Transaction
 
 # Page not found
 @app.errorhandler(404)
@@ -96,27 +96,6 @@ def profile():
     form.last_name.data = current_user.last_name
     return render_template('profile.html', form = form)
 
-@app.route('/profile/edit/<int:id>', methods=["GET", "POST"])
-@login_required
-def edit_profile(id):
-    #TODO Add validation to check if username or email is not taken
-    form = UpdateUserForm()
-    user_profile = User.query.get_or_404(id)
-    if request.method == "POST":
-        current_user.username = request.form["username"]
-        current_user.email = request.form["email"]
-        try:
-            db.session.commit()
-            flash("User updated successfully")
-            return redirect(url_for('profile'))
-        except:
-            flash("Error: Looks like there was an issue updating your profile")
-            return render_template('edit_profile.html')
-    form.username.data = current_user#user_profile.username
-    form.email.data = current_user#user_profile.email
-    return render_template("edit_profile.html", form=form, user_profile=user_profile)
-
-
 @app.route('/reports', methods=["GET", "POST"])
 @login_required
 def reports():
@@ -127,3 +106,36 @@ def reports():
 def transactions():
     return render_template("transactions.html")
 
+@app.route('/api/transactions', methods=["GET"])
+@login_required
+def get_transactions():
+    category = request.args.get('category')
+    date = request.args.get('date')
+    min_amount = request.args.get('min_amount', type=float)
+    max_amount = request.args.get('max_amount', type=float)
+
+    query = Transaction.query.filter_by(Transaction.user_id == current_user.id)
+
+    if category:
+        query = query.filter(Transaction.category == category)
+    if date:
+        query = query.filter(db.func.date(Transaction.date) == date)
+    if min_amount is not None:
+        query = query.filter(Transaction.amount >= min_amount)
+    if max_amount is not None:
+        query = query.filter(Transaction.amount <= max_amount)
+
+    transactions = query.all()
+    return jsonify([t.to_dict() for t in transactions]), 200
+
+@app.route('/transaction', methods=["POST"])
+def add_transaction():
+    data = request.json()
+    if not data or 'category' in data or 'amount' not in data:
+        return jsonify({'error': 'Missing required fields'})
+
+    n_transaction = Transaction(user_id=current_user.id, category=request['category'], amount= request['amount'], description = request.get('description', ''))
+
+    db.session.add(n_transaction)
+    db.session.commit()
+    return jsonify(n_transaction.to_dict()), 201

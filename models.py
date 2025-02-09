@@ -45,3 +45,13 @@ class Transaction(db.Model):
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.String(255), nullable=True)
     date = db.Column(db.DateTime, default=lambda: datetime.now(pytz.utc))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'category': self.category,
+            'amount': self.amount,
+            'description': self.description,
+            'date': self.date.strftime('%Y-%m-%d %H:%M:%S')
+        }

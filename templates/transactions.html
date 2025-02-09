@@ -23,8 +23,12 @@
             <input type="date" id="dateFilter" class="form-control">
         </div>
         <div class="col-md-3">
-            <label for="amountFilter" class="form-label">Filter by Amount</label>
-            <input type="number" id="amountFilter" class="form-control" placeholder="Enter amount">
+            <label for="minAmountFilter" class="form-label">Min Amount</label>
+            <input type="number" id="minAmountFilter" class="form-control" placeholder="Min amount">
+        </div>
+        <div class="col-md-3">
+            <label for="maxAmountFilter" class="form-label">Max Amount</label>
+            <input type="number" id="maxAmountFilter" class="form-control" placeholder="Max amount">
         </div>
         <div class="col-md-3 d-flex align-items-end">
             <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
