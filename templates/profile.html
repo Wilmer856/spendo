@@ -13,8 +13,8 @@
         <div class="col-md-4">
           <div class="card">
             <div class="card-body text-center">
-              <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" alt="User Profile">
-              <h4 class="card-title">John Doe</h4>
+              <img src="https://i.pravatar.cc/150" class="rounded-circle mb-3" alt="User Profile">
+              <h4 class="card-title">{{ current_user.full_name }}</h4>
               <p class="text-muted">{{ current_user.email }}</p>
             </div>
           </div>
@@ -23,14 +23,22 @@
           <div class="card mb-3">
             <div class="card-header">Update Profile</div>
             <div class="card-body">
-              <form>
+              <form action="/profile" method="POST">
                 <div class="mb-3">
-                    <label for="name" class="form-label">Full Name</label>
-                    <input type="text" class="form-control" id="name" value="John Doe">
+                  <label for="username" class="form-label">Username</label>
+                  {{ form.username(class="form-control", id="username") }}
                 </div>
                 <div class="mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    {{ form.first_name(class="form-control", id="first_name") }}
+                </div>
+                <div class="mb-3">
+                  <label for="last_name" class="form-label">Last Name</label>
+                  {{ form.last_name(class="form-control", id="last_name") }}
+              </div>
+                <div class="mb-3">
                     <label for="email" class="form-label">Email Address</label>
-                    <input type="email" class="form-control" id="email" value="{{ current_user.email }}">
+                    {{ form.email(class="form-control", id="email") }}
                 </div>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </form>

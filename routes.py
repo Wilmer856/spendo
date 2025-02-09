@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, session, req
 from flask_bcrypt import Bcrypt
 from app import app
 from forms import LoginForm, RegisterForm, UpdateUserForm
-from flask_login import login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user, current_user
 from models import db
 from models import User
 
@@ -23,13 +23,12 @@ def register():
     if form.validate_on_submit(): #validate data when submitted
         user = User.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = User(username=form.username.data, email=form.email.data)
+            user = User(username=form.username.data, email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data)
             password = form.password.data
             user.set_password(password)
 
             db.session.add(user)
             db.session.commit()
-            username = form.username.data
         else:
             print("User already exist")
         form.username.data = ''
@@ -64,8 +63,7 @@ def login():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    username = session.pop('username', None)
-    return render_template('dashboard.html', username = username)
+    return render_template('dashboard.html')
 
 
 @app.route('/logout', methods=["GET", "POST"])
@@ -78,7 +76,25 @@ def logout():
 @app.route('/profile', methods=["GET", "POST"])
 @login_required
 def profile():
-    return render_template('profile.html')
+    form = UpdateUserForm()
+    if request.method == "POST":
+        current_user.username = request.form["username"]
+        current_user.email = request.form["email"]
+        current_user.first_name = request.form["first_name"]
+        current_user.last_name = request.form["last_name"]
+        current_user.set_full_name()
+        try:
+            db.session.commit()
+            flash("User updated successfully")
+            return redirect(url_for('profile'))
+        except:
+            flash("Error: Looks like there was an issue updating your profile")
+            return render_template('edit_profile.html')
+    form.username.data = current_user.username#user_profile.username
+    form.email.data = current_user.email#user_profile.email
+    form.first_name.data = current_user.first_name
+    form.last_name.data = current_user.last_name
+    return render_template('profile.html', form = form)
 
 @app.route('/profile/edit/<int:id>', methods=["GET", "POST"])
 @login_required
@@ -87,8 +103,8 @@ def edit_profile(id):
     form = UpdateUserForm()
     user_profile = User.query.get_or_404(id)
     if request.method == "POST":
-        user_profile.username = request.form["username"]
-        user_profile.email = request.form["email"]
+        current_user.username = request.form["username"]
+        current_user.email = request.form["email"]
         try:
             db.session.commit()
             flash("User updated successfully")
@@ -96,8 +112,8 @@ def edit_profile(id):
         except:
             flash("Error: Looks like there was an issue updating your profile")
             return render_template('edit_profile.html')
-    form.username.data = user_profile.username
-    form.email.data = user_profile.email
+    form.username.data = current_user#user_profile.username
+    form.email.data = current_user#user_profile.email
     return render_template("edit_profile.html", form=form, user_profile=user_profile)
 
 
