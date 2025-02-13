@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request, jsonify
 from flask_bcrypt import Bcrypt
 from app import app
-from forms import LoginForm, RegisterForm, UpdateUserForm
+from forms import LoginForm, RegisterForm, UpdateUserForm, ChangePasswordForm, AddTransactionForm, ApplyFilterForm
 from flask_login import login_required, login_user, logout_user, current_user
 from models import db
 from models import User, Transaction
@@ -57,13 +57,14 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password')
+            flash('Invalid username or password', "danger")
     return render_template("login.html", form = form, username=username, password=password) # pass in the data
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    form = AddTransactionForm()
+    return render_template('dashboard.html', form=form)
 
 
 @app.route('/logout', methods=["GET", "POST"])
@@ -77,6 +78,8 @@ def logout():
 @login_required
 def profile():
     form = UpdateUserForm()
+    password_form = ChangePasswordForm()
+
     if request.method == "POST":
         current_user.username = request.form["username"]
         current_user.email = request.form["email"]
@@ -85,16 +88,63 @@ def profile():
         current_user.set_full_name()
         try:
             db.session.commit()
-            flash("User updated successfully")
-            return redirect(url_for('profile'))
+            flash("User updated successfully", "success")
+            return render_template('profile.html', form=form, password_form=password_form)
         except:
-            flash("Error: Looks like there was an issue updating your profile")
-            return render_template('edit_profile.html')
+            flash("Error: Looks like there was an issue updating your profile", "danger")
+            return render_template('profile.html', form=form, password_form=password_form)
     form.username.data = current_user.username#user_profile.username
     form.email.data = current_user.email#user_profile.email
     form.first_name.data = current_user.first_name
     form.last_name.data = current_user.last_name
-    return render_template('profile.html', form = form)
+    return render_template('profile.html', form = form, password_form=password_form)
+
+@app.route('/profile/update_pass', methods=["POST"])
+@login_required
+def change_password():
+    
+    current_password = request.form.get("current_password")
+    new_password = request.form.get("new_password")
+
+    if not current_password or not new_password:
+        flash('Error: Missing required fields!', "danger")
+        return redirect(url_for("profile"))
+    
+    if current_user and current_user.check_password(current_password):
+        current_user.set_password(new_password)
+        db.session.commit()
+        flash("Password updated successfully!", "success")
+    else:
+        flash("Incorrect current password!", "danger")
+    
+    return redirect(url_for("profile"))
+
+
+@app.route('/profile/delete', methods=["POST"])
+@login_required
+def delete_profile():
+
+    if not current_user:
+        flash("Error: No user is logged in")
+        return redirect(url_for('login'))
+    
+    user_id = current_user.id
+    user = User.query.get(user_id)
+
+    if user:
+        Transaction.query.filter_by(user_id=Transaction.user_id).delete()
+
+        db.session.delete(user)
+        db.session.commit()
+
+        logout_user()
+        flash("Your account has been deleted successfully", "success")
+
+        return redirect(url_for('login'))
+    
+    flash("Error: User not found.", "danger")
+    return redirect(url_for("profile"))
+
 
 @app.route('/reports', methods=["GET", "POST"])
 @login_required
@@ -104,7 +154,34 @@ def reports():
 @app.route('/transactions', methods=["GET", "POST"])
 @login_required
 def transactions():
-    return render_template("transactions.html")
+    filter_form = ApplyFilterForm()
+
+    category = filter_form.category.data
+    date = filter_form.date.data
+    min_amount = filter_form.min_amount.data
+    max_amount = filter_form.max_amount.data
+
+    transactions_dict = {}
+    query = Transaction.query.filter_by(user_id = current_user.id)
+    transactions =  query.all()
+    transactions_dict = [t.to_dict() for t in transactions]
+
+    if filter_form.validate_on_submit():
+        query = Transaction.query.filter_by(Transaction.user_id == current_user.id)
+
+        if category != "All":
+            query = query.filter(Transaction.category == category)
+        if date:
+            query = query.filter(db.func.date(Transaction.date) == date)
+        if min_amount is not None:
+            query = query.filter(Transaction.amount >= min_amount)
+        if max_amount is not None:
+            query = query.filter(Transaction.amount <= max_amount)
+
+        transactions = query.all()
+        transactions_dict = [t.to_dict() for t in transactions]
+
+    return render_template("transactions.html", filter_form = filter_form, transactions_dict = transactions_dict)
 
 @app.route('/api/transactions', methods=["GET"])
 @login_required
@@ -128,14 +205,16 @@ def get_transactions():
     transactions = query.all()
     return jsonify([t.to_dict() for t in transactions]), 200
 
-@app.route('/transaction', methods=["POST"])
+@app.route('/api/transactions', methods=["POST"])
 def add_transaction():
-    data = request.json()
-    if not data or 'category' in data or 'amount' not in data:
-        return jsonify({'error': 'Missing required fields'})
+    category = request.form.get("category")
+    amount = request.form.get("amount")
 
-    n_transaction = Transaction(user_id=current_user.id, category=request['category'], amount= request['amount'], description = request.get('description', ''))
-
-    db.session.add(n_transaction)
-    db.session.commit()
-    return jsonify(n_transaction.to_dict()), 201
+    try:
+        transaction = Transaction(user_id=current_user.id, category=category, amount= amount, description = request.form.get('description', ''))
+        db.session.add(transaction)
+        db.session.commit()
+        return redirect(url_for('dashboard'))
+    except:
+        flash("Error adding new transaction!")
+        return redirect(url_for('dashboard'))

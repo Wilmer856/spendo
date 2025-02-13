@@ -1,8 +1,8 @@
 {% extends 'base.html' %} 
 
 {% block content %}
-    {% for message in get_flashed_messages() %}
-        <div class="alert alert-primary alert-dismissible fade show" role="alert">
+    {% for category,message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -47,18 +47,18 @@
           <div class="card mb-3">
             <div class="card-header">Change Password</div>
             <div class="card-body">
-              <form>
+              <form action="/profile/update_pass" method="POST">
                 <div class="mb-3">
-                    <label for="currentPassword" class="form-label">Current Password</label>
-                    <input type="password" class="form-control" id="currentPassword">
+                    <label for="current_password" class="form-label">Current Password</label>
+                    {{ password_form.current_password(class="form-control", id="current_password") }}
                 </div>
                 <div class="mb-3">
-                    <label for="newPassword" class="form-label">New Password</label>
-                    <input type="password" class="form-control" id="newPassword">
+                    <label for="new_password" class="form-label">New Password</label>
+                    {{ password_form.new_password(class="form-control", id="new_password") }}
                 </div>
                 <div class="mb-3">
-                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                    <input type="password" class="form-control" id="confirmPassword">
+                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                    {{ password_form.confirm_password(class="form-control", id="confirm_password") }}
                 </div>
                 <button type="submit" class="btn btn-primary">Update Password</button>
               </form>
@@ -66,44 +66,13 @@
           </div>
           <div class="card mb-4">
             <div class="card-body text-center">
-              <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+              <form action="/profile/delete" method="POST">
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+              </form>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-
-
-    <!-- <h1>Profile</h1>
-    <div class="col-md-8">
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="row">
-              <div class="col-sm-3">
-                <h6 class="mb-0">Username</h6>
-              </div>
-              <div class="col-sm-9 text-secondary">
-                {{ current_user.username }}
-              </div>
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-3">
-                <h6 class="mb-0">Email</h6>
-              </div>
-              <div class="col-sm-9 text-secondary">
-                {{ current_user.email }}
-              </div>
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-12">
-                <a class="btn btn-info " href="{{ url_for('edit_profile', id=current_user.id) }}">Edit</a>
-              </div>
-            </div>
-          </div>
-        </div>
-    </div> -->
 
 {% endblock %}

@@ -9,14 +9,8 @@
 
     <div class="row mb-3">
         <div class="col-md-3">
-            <label for="categoryFilter" class="form-label">Filter by Category</label>
-            <select id="categoryFilter" class="form-select">
-                <option value="">All</option>
-                <option value="Food">Food</option>
-                <option value="Rent">Rent</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Entertainment">Entertainment</option>
-            </select>
+            <label class="form-label">Filter by Category</label>
+            {{ filter_form.category(class="form-select") }}
         </div>
         <div class="col-md-3">
             <label for="dateFilter" class="form-label">Filter by Date</label>
@@ -35,55 +29,39 @@
         </div>
     </div>
 
-    <!-- 🔹 Transactions Table -->
-    <div class="card">
-        <div class="card-header">Transaction History</div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionTable">
-                    <tr>
-                        <td>02/25/2024</td>
-                        <td>Groceries</td>
-                        <td>Bought vegetables</td>
-                        <td>-$50.00</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm">Edit</button>
-                            <button class="btn btn-danger btn-sm">Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>02/24/2024</td>
-                        <td>Gas</td>
-                        <td>Filled up car</td>
-                        <td>-$30.00</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm">Edit</button>
-                            <button class="btn btn-danger btn-sm">Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>02/20/2024</td>
-                        <td>Salary</td>
-                        <td>Monthly Paycheck</td>
-                        <td>+$2,000.00</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm">Edit</button>
-                            <button class="btn btn-danger btn-sm">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Transactions Table -->
+     {% if transactions_dict %}
+        <div class="card">
+            <div class="card-header">Transaction History</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTable">
+                        {% for transaction in transactions_dict %}
+                            <tr>
+                                <td>{{ transaction.date }}</td>
+                                <td>{{ transaction.category }}</td>
+                                <td>{{ transaction.description }}</td>
+                                <td>{{ transaction.amount }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    {% endif %}
 
     <!-- 🔹 Pagination -->
     <nav aria-label="Page navigation" class="mt-3">

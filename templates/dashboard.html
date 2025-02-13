@@ -12,33 +12,35 @@
 {% endfor %}
 
 <div class="container my-4">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-header">Total Balance</div>
-                <div class="card-body">
-                    <h5 class="card-title">$2,500</h5>
-                    <p class="card-text">Your current balance</p>
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h2 class="mb-4">Transactions</h2>
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="categoryFilter" class="form-label">Category</label>
+                    <select id="categoryFilter" class="form-select">
+                        <option value="">All</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Gas">Gas</option>
+                        <option value="Salary">Salary</option>
+                    </select>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-header">Total Income</div>
-                <div class="card-body">
-                    <h5 class="card-title">$4,000</h5>
-                    <p class="card-text">Income this month</p>
+                <div class="col-md-3">
+                    <label for="dateFilter" class="form-label">Date</label>
+                    <input type="date" id="dateFilter" class="form-control">
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-danger mb-3">
-                <div class="card-header">Total Expenses</div>
-                <div class="card-body">
-                    <div class="card-title">$1,500</div>
-                    <p class="card-text">Expenses this month</p>
+                <div class="col-md-3">
+                    <label for="minAmountFilter" class="form-label">Min Amount</label>
+                    <input type="number" id="minAmountFilter" class="form-control" placeholder="Min amount">
                 </div>
-            </div>
+                <div class="col-md-3">
+                    <label for="maxAmountFilter" class="form-label">Max Amount</label>
+                    <input type="number" id="maxAmountFilter" class="form-control" placeholder="Max amount">
+                </div>
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </form>
         </div>
     </div>
     <div class="row">
@@ -57,17 +59,17 @@
                         <tbody>
                             <tr>
                                 <td>02/25/2024</td>
-                                <td>🛒 Groceries</td>
+                                <td>Groceries</td>
                                 <td>-$50.00</td>
                             </tr>
                             <tr>
                                 <td>02/24/2024</td>
-                                <td>🚗 Gas</td>
+                                <td>Gas</td>
                                 <td>-$30.00</td>
                             </tr>
                             <tr>
                                 <td>02/20/2024</td>
-                                <td>💰 Salary</td>
+                                <td>Salary</td>
                                 <td>+$2,000.00</td>
                         </tbody>
                     </table>
@@ -95,11 +97,42 @@
     </div>
     <div class="row mt-4">
         <div class="col-md-12 text-center">
-            <button class="btn btn-primary me-2">Add Transaction</button>
+            <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#transactionModal">Add Transaction</button>
             <button class="btn btn-secondary me-2">Settings</button>
             <button class="btn btn-success">Export Data</button>
         </div>
     </div>
+
+    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Add Transaction</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/api/transactions" method="POST">
+                    <div class="mb-3">
+                        {{ form.category.label(class="form-label") }}
+                        {{ form.category(class="form-control") }}
+                      </div>
+                    <div class="mb-3">
+                        {{ form.amount.label(class="form-label") }}
+                        {{ form.amount(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control") }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+            </div>
+          </div>
+        </div>
+      </div>
 
 </div>
 
