@@ -5,6 +5,8 @@ from forms import LoginForm, RegisterForm, UpdateUserForm, ChangePasswordForm, A
 from flask_login import login_required, login_user, logout_user, current_user
 from models import db
 from models import User, Transaction
+from datetime import datetime
+from sqlalchemy import cast, Date
 
 # Page not found
 @app.errorhandler(404)
@@ -63,8 +65,16 @@ def login():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    #TODO Add ststs at top of page to user DB table and graphs 
     form = AddTransactionForm()
-    return render_template('dashboard.html', form=form)
+
+    query = Transaction.query.filter(Transaction.user_id == current_user.id)
+    query = query.order_by(Transaction.date.desc()).limit(5).all()
+
+    for transaction in query:
+        transaction.date = transaction.date.strftime('%Y/%m/%d')
+
+    return render_template('dashboard.html', form=form, recent_transactions=query)
 
 
 @app.route('/logout', methods=["GET", "POST"])
@@ -149,11 +159,13 @@ def delete_profile():
 @app.route('/reports', methods=["GET", "POST"])
 @login_required
 def reports():
+    #TODO Add graphs to page 
     return render_template("reports.html")
 
 @app.route('/transactions', methods=["GET", "POST"])
 @login_required
 def transactions():
+    #TODO Add table navigation to transaction page and add/edit transactions from the table
     filter_form = ApplyFilterForm()
 
     category = filter_form.category.data
@@ -161,50 +173,28 @@ def transactions():
     min_amount = filter_form.min_amount.data
     max_amount = filter_form.max_amount.data
 
-    transactions_dict = {}
-    query = Transaction.query.filter_by(user_id = current_user.id)
-    transactions =  query.all()
-    transactions_dict = [t.to_dict() for t in transactions]
+    query = Transaction.query.filter(Transaction.user_id == current_user.id)
 
-    if filter_form.validate_on_submit():
-        query = Transaction.query.filter_by(Transaction.user_id == current_user.id)
-
-        if category != "All":
-            query = query.filter(Transaction.category == category)
-        if date:
-            query = query.filter(db.func.date(Transaction.date) == date)
-        if min_amount is not None:
-            query = query.filter(Transaction.amount >= min_amount)
-        if max_amount is not None:
-            query = query.filter(Transaction.amount <= max_amount)
-
-        transactions = query.all()
-        transactions_dict = [t.to_dict() for t in transactions]
-
-    return render_template("transactions.html", filter_form = filter_form, transactions_dict = transactions_dict)
-
-@app.route('/api/transactions', methods=["GET"])
-@login_required
-def get_transactions():
-    category = request.args.get('category')
-    date = request.args.get('date')
-    min_amount = request.args.get('min_amount', type=float)
-    max_amount = request.args.get('max_amount', type=float)
-
-    query = Transaction.query.filter_by(Transaction.user_id == current_user.id)
-
-    if category:
+    # Apply filters only if form has values
+    if category and category != "All":
         query = query.filter(Transaction.category == category)
     if date:
-        query = query.filter(db.func.date(Transaction.date) == date)
+        query = query.filter(cast(Transaction.date, Date) == date)
     if min_amount is not None:
         query = query.filter(Transaction.amount >= min_amount)
     if max_amount is not None:
         query = query.filter(Transaction.amount <= max_amount)
 
+    # Fetch transactions after filtering
     transactions = query.all()
-    return jsonify([t.to_dict() for t in transactions]), 200
+    transactions_dict = [t.to_dict() for t in transactions]
 
+    return render_template(
+        "transactions.html",
+        filter_form=filter_form,
+        transactions_dict=transactions_dict
+    )
+   
 @app.route('/api/transactions', methods=["POST"])
 def add_transaction():
     category = request.form.get("category")

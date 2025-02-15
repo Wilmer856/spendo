@@ -2,68 +2,63 @@
 
 {% block content %}
 
-
-
 <div class="container mt-4">
     <h2 class="text-center mb-4">Transactions</h2>
-
-    <div class="row mb-3">
+    <form method="POST" action="{{ url_for('transactions') }}" class="row mb-3">
+        {{ filter_form.hidden_tag() }}
         <div class="col-md-3">
             <label class="form-label">Filter by Category</label>
             {{ filter_form.category(class="form-select") }}
         </div>
         <div class="col-md-3">
-            <label for="dateFilter" class="form-label">Filter by Date</label>
-            <input type="date" id="dateFilter" class="form-control">
+            <label class="form-label">Filter by Date</label>
+            {{ filter_form.date(class="form-control") }}
         </div>
         <div class="col-md-3">
-            <label for="minAmountFilter" class="form-label">Min Amount</label>
-            <input type="number" id="minAmountFilter" class="form-control" placeholder="Min amount">
+            <label class="form-label">Min Amount</label>
+            {{ filter_form.min_amount(class="form-control", placeholder="Min amount") }}
         </div>
         <div class="col-md-3">
-            <label for="maxAmountFilter" class="form-label">Max Amount</label>
-            <input type="number" id="maxAmountFilter" class="form-control" placeholder="Max amount">
+            <label class="form-label">Max Amount</label>
+            {{ filter_form.max_amount(class="form-control", placeholder="Max amount") }}
         </div>
-        <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
+        <div class="col-md-3 d-flex align-items-end mt-3">
+            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+        </div>
+    </form>
+
+    <div class="card">
+        <div class="card-header">Transaction History</div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionTable">
+                    {% for transaction in transactions_dict %}
+                        <tr>
+                            <td>{{ transaction.date }}</td>
+                            <td>{{ transaction.category }}</td>
+                            <td>{{ transaction.description }}</td>
+                            <td>${{ "{:.2f}".format(transaction.amount) }}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm">Edit</button>
+                                <button class="btn btn-danger btn-sm">Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Transactions Table -->
-     {% if transactions_dict %}
-        <div class="card">
-            <div class="card-header">Transaction History</div>
-            <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionTable">
-                        {% for transaction in transactions_dict %}
-                            <tr>
-                                <td>{{ transaction.date }}</td>
-                                <td>{{ transaction.category }}</td>
-                                <td>{{ transaction.description }}</td>
-                                <td>{{ transaction.amount }}</td>
-                                <td>
-                                    <button class="btn btn-warning btn-sm">Edit</button>
-                                    <button class="btn btn-danger btn-sm">Delete</button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% endif %}
-
-    <!-- 🔹 Pagination -->
+    <!-- Pagination -->
     <nav aria-label="Page navigation" class="mt-3">
         <ul class="pagination justify-content-center">
             <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>

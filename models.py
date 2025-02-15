@@ -53,5 +53,5 @@ class Transaction(db.Model):
             'category': self.category,
             'amount': self.amount,
             'description': self.description,
-            'date': self.date.strftime('%Y-%m-%d %H:%M:%S')
+            'date': self.date.strftime('%Y/%m/%d')
         }

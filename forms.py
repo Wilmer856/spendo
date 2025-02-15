@@ -35,7 +35,7 @@ class AddTransactionForm(FlaskForm):
 
 class ApplyFilterForm(FlaskForm):
     category = SelectField("Category", choices=["All", "Food & Dining", "Rent & Utilities", "Shopping", "Entertainment"])
-    date = DateField("Date", format="%m-%d-%Y")
+    date = DateField("Date")
     min_amount = IntegerField("Min Amount")
     max_amount = IntegerField("Max Amount")
     submit = SubmitField("Apply Filters")
