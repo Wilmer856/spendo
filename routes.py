@@ -103,8 +103,8 @@ def profile():
         except:
             flash("Error: Looks like there was an issue updating your profile", "danger")
             return render_template('profile.html', form=form, password_form=password_form)
-    form.username.data = current_user.username#user_profile.username
-    form.email.data = current_user.email#user_profile.email
+    form.username.data = current_user.username
+    form.email.data = current_user.email
     form.first_name.data = current_user.first_name
     form.last_name.data = current_user.last_name
     return render_template('profile.html', form = form, password_form=password_form)
@@ -165,8 +165,10 @@ def reports():
 @app.route('/transactions', methods=["GET", "POST"])
 @login_required
 def transactions():
-    #TODO Add table navigation to transaction page and add/edit transactions from the table
     filter_form = ApplyFilterForm()
+
+    page = request.args.get("page", 1, type=int)
+    per_page = 5
 
     category = filter_form.category.data
     date = filter_form.date.data
@@ -185,17 +187,28 @@ def transactions():
     if max_amount is not None:
         query = query.filter(Transaction.amount <= max_amount)
 
-    # Fetch transactions after filtering
-    transactions = query.all()
-    transactions_dict = [t.to_dict() for t in transactions]
+    transactions_paginated = query.order_by(Transaction.date.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    for transaction in transactions_paginated.items:
+        transaction.date = transaction.date.strftime('%Y/%m/%d')
+
+    edit_forms = {}
+    for transaction in transactions_paginated.items:
+        form = AddTransactionForm(obj=transaction)
+        form.amount.data = "{:.2f}".format(transaction.amount)
+        form.category.data = transaction.category
+        edit_forms[transaction.id] = form
 
     return render_template(
         "transactions.html",
         filter_form=filter_form,
-        transactions_dict=transactions_dict
+        edit_forms=edit_forms,  # Pass dictionary of forms
+        transactions_dict=transactions_paginated.items,
+        pagination=transactions_paginated
     )
    
 @app.route('/api/transactions', methods=["POST"])
+@login_required
 def add_transaction():
     category = request.form.get("category")
     amount = request.form.get("amount")
@@ -208,3 +221,38 @@ def add_transaction():
     except:
         flash("Error adding new transaction!")
         return redirect(url_for('dashboard'))
+    
+@app.route('/api/transactions/edit/<int:transaction_id>', methods=["POST"])
+@login_required
+def edit_transaction(transaction_id):
+    transaction = Transaction.query.get_or_404(transaction_id)
+
+    # Get updated values from form
+    category = request.form.get("category")
+    amount = request.form.get("amount")
+    description = request.form.get("description")
+
+    if category:
+        transaction.category = category
+    if amount:
+        transaction.amount = float(amount)
+    if description:
+        transaction.description = description
+
+    db.session.commit()
+    flash("Transaction updated successfully!", "success")
+    
+    return redirect(url_for('transactions'))
+
+@app.route('/api/transactions/delete/<int:transaction_id>', methods=["POST"])
+@login_required
+def delete_transaction(transaction_id):
+    transaction = Transaction.query.get_or_404(transaction_id)
+
+    if transaction:
+        db.session.delete(transaction)
+        db.session.commit()
+
+        flash("Transaction deleted successfully!", "success")
+    
+    return redirect(url_for('transactions'))
