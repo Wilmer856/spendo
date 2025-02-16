@@ -7,57 +7,38 @@
 
     <div class="row">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Expenses by Category</div>
-                <div class="card-body">
-                    <canvas id="expensePieChart"></canvas>
+            {% if img_data.expenses_by_category %}
+                <div class="card mb-4">
+                    <div class="card-header">Expenses by Category</div>
+                    <div class="card-body text-center">
+                        <img src="data:image/png;base64,{{ img_data.expenses_by_category }}" class="img-fluid" alt="Expenses by Category">
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
 
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Top Spending Categories</div>
-                <div class="card-body">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Food & Dining</td>
-                                <td>$300</td>
-                            </tr>
-                            <tr>
-                                <td>Rent & Utilities</td>
-                                <td>$800</td>
-                            </tr>
-                            <tr>
-                                <td>Shopping</td>
-                                <td>$200</td>
-                            </tr>
-                            <tr>
-                                <td>Entertainment</td>
-                                <td>$150</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            {% if img_data.monthly_trends %}
+                <div class="card mb-4">
+                    <div class="card-header">Monthly Spending Trends</div>
+                    <div class="card-body text-center">
+                        <img src="data:image/png;base64,{{ img_data.monthly_trends }}" class="img-fluid" alt="Monthly Spending Trends">
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
     </div>
 
     <div class="row mt-4">
         <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Monthly Spending Trends</div>
-                <div class="card-body">
-                    <canvas id="spendingLineChart"></canvas>
+            {% if img_data.top_spending_categories %}
+                <div class="card mb-4">
+                    <div class="card-header">Top Spending Categories</div>
+                    <div class="card-body text-center">
+                        <img src="data:image/png;base64,{{ img_data.top_spending_categories }}" class="img-fluid" alt="Top Spending Categories">
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
 
         <div class="col-md-6">

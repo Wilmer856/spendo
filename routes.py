@@ -7,6 +7,13 @@ from models import db
 from models import User, Transaction
 from datetime import datetime
 from sqlalchemy import cast, Date
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+import io
+import base64
 
 # Page not found
 @app.errorhandler(404)
@@ -159,8 +166,63 @@ def delete_profile():
 @app.route('/reports', methods=["GET", "POST"])
 @login_required
 def reports():
-    #TODO Add graphs to page 
-    return render_template("reports.html")
+    transactions = Transaction.query.filter(Transaction.user_id == current_user.id).all()
+    df = pd.DataFrame([(t.category, t.amount, t.date) for t in transactions], columns=["category", "amount", "date"])
+    
+    img_data = {}
+    
+    if not df.empty:
+        df["date"] = pd.to_datetime(df["date"]).dt.strftime('%Y-%m')
+
+        # Expenses by Category (Bar Chart)
+        plt.figure(figsize=(6, 4))
+        category_spending = df.groupby("category")["amount"].sum().reset_index()
+        category_spending = category_spending.sort_values(by="amount", ascending=False)
+        sns.barplot(data=category_spending, x="amount", y="category", palette="viridis")
+        plt.xlabel("Total Spending ($)")
+        plt.ylabel("Category")
+        plt.title("Expenses by Category")
+
+        buff = io.BytesIO()
+        plt.savefig(buff, format='png', bbox_inches='tight')
+        buff.seek(0)
+        img_data["expenses_by_category"] = base64.b64encode(buff.read()).decode('utf-8')
+        plt.close()
+        buff.close()
+
+        # Monthly Spending Trends (Line Chart)
+        plt.figure(figsize=(6, 4))
+        monthly_trends = df.groupby("date")["amount"].sum().reset_index()
+        sns.lineplot(data=monthly_trends, x="date", y="amount", marker="o", color="blue")
+        plt.xlabel("Month")
+        plt.ylabel("Total Spending ($)")
+        plt.title("Monthly Spending Trends")
+        plt.xticks(rotation=45)
+
+        buff = io.BytesIO()
+        plt.savefig(buff, format='png', bbox_inches='tight')
+        buff.seek(0)
+        img_data["monthly_trends"] = base64.b64encode(buff.read()).decode('utf-8')
+        plt.close()
+        buff.close()
+
+        # Top Spending Categories (Bar Chart)
+        plt.figure(figsize=(6, 4))
+        category_counts = df["category"].value_counts().reset_index()
+        category_counts.columns = ["category", "count"]
+        sns.barplot(data=category_counts, x="count", y="category", palette="coolwarm")
+        plt.xlabel("Number of Transactions")
+        plt.ylabel("Category")
+        plt.title("# of Transactions by Category")
+
+        buff = io.BytesIO()
+        plt.savefig(buff, format='png', bbox_inches='tight')
+        buff.seek(0)
+        img_data["top_spending_categories"] = base64.b64encode(buff.read()).decode('utf-8')
+        plt.close()
+        buff.close()
+
+    return render_template("reports.html", img_data=img_data)
 
 @app.route('/transactions', methods=["GET", "POST"])
 @login_required
