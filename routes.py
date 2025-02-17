@@ -72,8 +72,23 @@ def login():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    #TODO Add ststs at top of page to user DB table and graphs 
+    #TODO Add transaction category when earning money
+    #TODO Add final dashboard graphs
     form = AddTransactionForm()
+
+    transactions = Transaction.query.filter(Transaction.user_id == current_user.id).all()
+
+    total_income = sum(t.amount for t in transactions if t.amount > 0)
+    total_expenses = sum(abs(t.amount) for t in transactions if t.amount < 0)
+    total_balance = total_income - total_expenses
+
+    current_month = datetime.now().strftime('%Y-%m')
+    transactions_this_month = [
+        t for t in transactions if t.date.strftime('%Y-%m') == current_month
+    ]
+
+    total_income_this_month = sum(t.amount for t in transactions_this_month if t.amount > 0)
+    total_expenses_this_month = sum(abs(t.amount) for t in transactions_this_month if t.amount < 0)
 
     query = Transaction.query.filter(Transaction.user_id == current_user.id)
     query = query.order_by(Transaction.date.desc()).limit(5).all()
@@ -81,7 +96,12 @@ def dashboard():
     for transaction in query:
         transaction.date = transaction.date.strftime('%Y/%m/%d')
 
-    return render_template('dashboard.html', form=form, recent_transactions=query)
+    return render_template('dashboard.html', 
+        form=form, 
+        recent_transactions=query, total_balance=total_balance,
+        total_income_this_month=total_income_this_month,
+        total_expenses_this_month=total_expenses_this_month
+    )
 
 
 @app.route('/logout', methods=["GET", "POST"])
@@ -94,6 +114,7 @@ def logout():
 @app.route('/profile', methods=["GET", "POST"])
 @login_required
 def profile():
+    #TODO Add default profile pic with Initials
     form = UpdateUserForm()
     password_form = ChangePasswordForm()
 
@@ -166,8 +187,9 @@ def delete_profile():
 @app.route('/reports', methods=["GET", "POST"])
 @login_required
 def reports():
-    transactions = Transaction.query.filter(Transaction.user_id == current_user.id).all()
-    df = pd.DataFrame([(t.category, t.amount, t.date) for t in transactions], columns=["category", "amount", "date"])
+    #TODO Add Income vs Expenses since now we have that data
+    transactions = Transaction.query.filter(Transaction.user_id == current_user.id, Transaction.amount < 0).all()
+    df = pd.DataFrame([(t.category, abs(t.amount), t.date) for t in transactions], columns=["category", "amount", "date"])
     
     img_data = {}
     

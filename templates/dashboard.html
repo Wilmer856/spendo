@@ -17,7 +17,7 @@
             <div class="card text-white bg-primary mb-3">
                 <div class="card-header">Total Balance</div>
                 <div class="card-body">
-                    <h5 class="card-title">$2,500</h5>
+                    <h5 class="card-title">${{ "{:.2f}".format(total_balance) }}</h5>
                     <p class="card-text">Your current balance</p>
                 </div>
             </div>
@@ -26,7 +26,7 @@
             <div class="card text-white bg-success mb-3">
                 <div class="card-header">Total Income</div>
                 <div class="card-body">
-                    <h5 class="card-title">$4,000</h5>
+                    <h5 class="card-title">${{ "{:.2f}".format(total_income_this_month) }}</h5>
                     <p class="card-text">Income this month</p>
                 </div>
             </div>
@@ -35,7 +35,7 @@
             <div class="card text-white bg-danger mb-3">
                 <div class="card-header">Total Expenses</div>
                 <div class="card-body">
-                    <div class="card-title">$1,500</div>
+                    <div class="card-title">${{ "{:.2f}".format(total_expenses_this_month) }}</div>
                     <p class="card-text">Expenses this month</p>
                 </div>
             </div>
