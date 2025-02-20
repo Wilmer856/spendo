@@ -2,9 +2,9 @@
 
 {% block content %}
 
-{% for message in get_flashed_messages() %}
-
-    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+{% for category, message in get_flashed_messages(with_categories=True) %}
+    
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
@@ -35,7 +35,7 @@
             <div class="card text-white bg-danger mb-3">
                 <div class="card-header">Total Expenses</div>
                 <div class="card-body">
-                    <div class="card-title">${{ "{:.2f}".format(total_expenses_this_month) }}</div>
+                    <h5 class="card-title">${{ "{:.2f}".format(total_expenses_this_month) }}</h5>
                     <p class="card-text">Expenses this month</p>
                 </div>
             </div>
@@ -71,7 +71,22 @@
             <div class="card">
                 <div class="card-header">Expenses by Category</div>
                 <div class="card-body">
-                    <canvas id="expenseChart"></canvas>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Amount</th> 
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category, amount in categories %}
+                                <tr>
+                                    <td>{{ category }}</td>
+                                    <td>${{ "{:.2f}".format(amount) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -81,7 +96,7 @@
             <div class="card">
                 <div class="card-header">Spending Trends</div>
                 <div class="card-body">
-                    <canvas id="trendsChart"></canvas>
+                    <img src="data:image/png;base64,{{ trend_img_data }}" class="img-fluid" alt="Expenses by Category">
                 </div>
             </div>
         </div>

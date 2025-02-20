@@ -29,12 +29,12 @@ class ChangePasswordForm(FlaskForm):
     confirm_password = PasswordField('Confirm Password',  validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
 
 class AddTransactionForm(FlaskForm):
-    category = SelectField("Category", choices=["Food & Dining", "Rent & Utilities", "Shopping", "Entertainment"], validators=[DataRequired()])
+    category = SelectField("Category", choices=["Food & Dining", "Rent & Utilities", "Shopping", "Entertainment", "Deposit"], validators=[DataRequired()])
     amount = FloatField("Amount", validators=[DataRequired()])
     description = StringField("Description", validators=[Length(max=100)])
 
 class ApplyFilterForm(FlaskForm):
-    category = SelectField("Category", choices=["All", "Food & Dining", "Rent & Utilities", "Shopping", "Entertainment"])
+    category = SelectField("Category", choices=["All", "Food & Dining", "Rent & Utilities", "Shopping", "Entertainment", "Deposit"])
     date = DateField("Date")
     min_amount = IntegerField("Min Amount")
     max_amount = IntegerField("Max Amount")

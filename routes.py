@@ -6,7 +6,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 from models import db
 from models import User, Transaction
 from datetime import datetime
-from sqlalchemy import cast, Date
+from sqlalchemy import cast, Date, func
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
@@ -66,18 +66,49 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password', "danger")
+            flash("Invalid username or password", "danger")
     return render_template("login.html", form = form, username=username, password=password) # pass in the data
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    #TODO Add transaction category when earning money
-    #TODO Add final dashboard graphs
     form = AddTransactionForm()
 
+    # Obtain all transaction values from the user
     transactions = Transaction.query.filter(Transaction.user_id == current_user.id).all()
 
+    # Obtain all trnsactions except deposits to graph spending 
+    transactions_spent = Transaction.query.filter(Transaction.user_id == current_user.id, Transaction.amount < 0).all()
+    df_money_spent = pd.DataFrame([(t.date, abs(t.amount)) for t in transactions_spent], columns=["date", "amount"])
+    df_money_spent["date"] = pd.to_datetime(df_money_spent["date"])
+    df_money_spent["month"] = df_money_spent["date"].dt.to_period("M")  # Groups by Year-Month
+    # Group by month and sum expenses
+    df_monthly = df_money_spent.groupby("month")["amount"].sum().reset_index()
+
+    # Convert period to string for plotting
+    df_monthly["month"] = df_monthly["month"].astype(str)
+
+    # Plot spending trends
+    plt.figure(figsize=(8,4))
+    sns.lineplot(data=df_monthly, x="month", y="amount", marker="o", linewidth=2, color="red")
+    plt.xticks(rotation=45)
+    plt.xlabel("Month")
+    plt.ylabel("Total Spending ($)")
+    plt.title("Monthly Spending Trends")
+    plt.grid()
+
+    # Save to buffer for rendering in HTML
+    buff = io.BytesIO()
+    plt.savefig(buff, format='png', bbox_inches='tight')
+    buff.seek(0)
+    trend_img_data = base64.b64encode(buff.read()).decode('utf-8')
+    plt.close()
+    buff.close()
+
+    # Retrieve transactions by category
+    categories = db.session.query(Transaction.category, func.sum(func.abs(Transaction.amount))).filter(Transaction.user_id == current_user.id).group_by(Transaction.category).all()
+
+    # Calculate income data from the transaction table
     total_income = sum(t.amount for t in transactions if t.amount > 0)
     total_expenses = sum(abs(t.amount) for t in transactions if t.amount < 0)
     total_balance = total_income - total_expenses
@@ -90,6 +121,7 @@ def dashboard():
     total_income_this_month = sum(t.amount for t in transactions_this_month if t.amount > 0)
     total_expenses_this_month = sum(abs(t.amount) for t in transactions_this_month if t.amount < 0)
 
+    # Obtain the five most recent transactions
     query = Transaction.query.filter(Transaction.user_id == current_user.id)
     query = query.order_by(Transaction.date.desc()).limit(5).all()
 
@@ -100,7 +132,9 @@ def dashboard():
         form=form, 
         recent_transactions=query, total_balance=total_balance,
         total_income_this_month=total_income_this_month,
-        total_expenses_this_month=total_expenses_this_month
+        total_expenses_this_month=total_expenses_this_month,
+        categories=categories,
+        trend_img_data=trend_img_data
     )
 
 
@@ -108,7 +142,7 @@ def dashboard():
 @login_required
 def logout():
     logout_user()
-    flash("You have successfully logged out!")
+    flash("You have successfully logged out!", "success")
     return redirect(url_for('login'))
 
 @app.route('/profile', methods=["GET", "POST"])
@@ -298,12 +332,18 @@ def add_transaction():
     amount = request.form.get("amount")
 
     try:
+        amount = float(amount)
+        if category != "Deposit":
+            amount = amount * -1
+        else:
+            amount = abs(amount)
         transaction = Transaction(user_id=current_user.id, category=category, amount= amount, description = request.form.get('description', ''))
         db.session.add(transaction)
         db.session.commit()
+        flash("Transaction added successfully!", "success")
         return redirect(url_for('dashboard'))
     except:
-        flash("Error adding new transaction!")
+        flash("Error adding new transaction!", "danger")
         return redirect(url_for('dashboard'))
     
 @app.route('/api/transactions/edit/<int:transaction_id>', methods=["POST"])
