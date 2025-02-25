@@ -221,14 +221,18 @@ def delete_profile():
 @app.route('/reports', methods=["GET", "POST"])
 @login_required
 def reports():
-    #TODO Add Income vs Expenses since now we have that data
     transactions = Transaction.query.filter(Transaction.user_id == current_user.id, Transaction.amount < 0).all()
+    all_deposits = Transaction.query.filter(Transaction.user_id == current_user.id, Transaction.amount > 0).all()
     df = pd.DataFrame([(t.category, abs(t.amount), t.date) for t in transactions], columns=["category", "amount", "date"])
-    
     img_data = {}
     
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"]).dt.strftime('%Y-%m')
+        total_income = sum(t.amount for t in all_deposits)
+        total_expenses = sum(abs(t.amount) for t in transactions)
+        data = {"Income": total_income, "Expenses": total_expenses}
+        df_deposits = pd.DataFrame(data=data, index=["Amount"])
+        print(df_deposits)
 
         # Expenses by Category (Bar Chart)
         plt.figure(figsize=(6, 4))
@@ -275,6 +279,20 @@ def reports():
         plt.savefig(buff, format='png', bbox_inches='tight')
         buff.seek(0)
         img_data["top_spending_categories"] = base64.b64encode(buff.read()).decode('utf-8')
+        plt.close()
+        buff.close()
+
+         # Income VS Expenses (Bar Chart)
+        plt.figure(figsize=(6, 4))
+        sns.barplot(data=df_deposits, palette="viridis")
+        plt.xlabel("Category")
+        plt.ylabel("Total Amount ($)")
+        plt.title("Income VS Expenses ($)")
+
+        buff = io.BytesIO()
+        plt.savefig(buff, format='png', bbox_inches='tight')
+        buff.seek(0)
+        img_data["incomeVsExpenses"] = base64.b64encode(buff.read()).decode('utf-8')
         plt.close()
         buff.close()
 
