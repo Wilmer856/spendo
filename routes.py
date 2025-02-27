@@ -229,10 +229,12 @@ def reports():
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"]).dt.strftime('%Y-%m')
         total_income = sum(t.amount for t in all_deposits)
-        total_expenses = sum(abs(t.amount) for t in transactions)
+        total_expenses = sum(abs(t.amount) for t in transactions if datetime.now().month == int(df["date"].loc[0].split("-")[1]))
         data = {"Income": total_income, "Expenses": total_expenses}
         df_deposits = pd.DataFrame(data=data, index=["Amount"])
-        print(df_deposits)
+        print(df["date"])
+        print(datetime.now().month)
+        print(int(df["date"].loc[0].split("-")[1]))
 
         # Expenses by Category (Bar Chart)
         plt.figure(figsize=(6, 4))
@@ -282,12 +284,12 @@ def reports():
         plt.close()
         buff.close()
 
-         # Income VS Expenses (Bar Chart)
+         # Income VS Expenses (by month) (Bar Chart)
         plt.figure(figsize=(6, 4))
         sns.barplot(data=df_deposits, palette="viridis")
         plt.xlabel("Category")
         plt.ylabel("Total Amount ($)")
-        plt.title("Income VS Expenses ($)")
+        plt.title(f"Income vs. Expenses ({datetime.now().strftime('%B')}) ($)")
 
         buff = io.BytesIO()
         plt.savefig(buff, format='png', bbox_inches='tight')

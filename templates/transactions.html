@@ -3,6 +3,12 @@
 {% block content %}
 
 <div class="container mt-4">
+    {% for category,message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
     <h2 class="text-center mb-4">Transactions</h2>
     <form method="POST" action="{{ url_for('transactions') }}" class="row mb-3">
         {{ filter_form.hidden_tag() }}
