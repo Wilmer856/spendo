@@ -41,18 +41,24 @@
         </div>
 
         <div class="col-md-6">
+            {% if img_data.incomeVsExpenses %}
             <div class="card">
                 <div class="card-header">Income vs. Expenses by Month</div>
                 <div class="card-body">
                     <img src="data:image/png;base64,{{ img_data.incomeVsExpenses }}" class="img-fluid" alt="Income VS Expenses">
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 
     <div class="row mt-4 mb-4 text-center">
         <div class="col">
-            <button class="btn btn-success">Download Report</button>
+            {% if img_data %}
+                <form action="/api/transactions/report" method="GET">
+                    <button class="btn btn-success">Download Report</button>
+                </form>
+            {% endif %}
         </div>
     </div>
 </div>

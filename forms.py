@@ -13,7 +13,7 @@ class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = EmailField('Email Address', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password',  validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
+    confirm_password = PasswordField('Confirm Password',  validators=[DataRequired(), EqualTo('password', message='Passwords must match'), Length(min=8, max=64, message="Password must be between 8 and 64 characters long.")])
     submit = SubmitField('Register')
 
 class UpdateUserForm(FlaskForm):
@@ -26,7 +26,7 @@ class UpdateUserForm(FlaskForm):
 class ChangePasswordForm(FlaskForm):
     current_password = PasswordField('Current Password', validators=[DataRequired()])
     new_password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password',  validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
+    confirm_password = PasswordField('Confirm Password',  validators=[DataRequired(), EqualTo('new_password', message='Passwords must match'), Length(min=8, max=64, message="Password must be between 8 and 64 characters long.")])
 
 class AddTransactionForm(FlaskForm):
     category = SelectField("Category", choices=["Food & Dining", "Rent & Utilities", "Shopping", "Entertainment", "Deposit"], validators=[DataRequired()])

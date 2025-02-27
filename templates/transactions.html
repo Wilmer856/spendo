@@ -36,64 +36,66 @@
     <div class="card">
         <div class="card-header">Transaction History</div>
         <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionTable">
-                    {% for transaction in transactions_dict %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td>{{ transaction.date }}</td>
-                            <td>{{ transaction.category }}</td>
-                            <td>{{ transaction.description }}</td>
-                            <td>${{ "{:.2f}".format(transaction.amount) }}</td>
-                            <td class="d-flex gap-2">
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#transactionModal-{{ transaction.id }}">Edit</button>
-                                <form action="{{ url_for('delete_transaction', transaction_id=transaction.id) }}" method="POST">
-                                    <button class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                                <!-- <button class="btn btn-danger btn-sm">Delete</button> -->
-                            </td>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
                         </tr>
-                        <div class="modal fade" id="transactionModal-{{ transaction.id }}" tabindex="-1" aria-labelledby="transactionModalLabel-{{ transaction.id }}" aria-hidden="true">
-                            <div class="modal-dialog">
-                              <div class="modal-content">
-                                <div class="modal-header">
-                                  <h1 class="modal-title fs-5" id="transactionModalLabel-{{ transaction.id }}">Edit Transaction</h1>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form action="{{url_for('edit_transaction', transaction_id=transaction.id) }}" method="POST">
-                                        <div class="mb-3">
-                                            {{ edit_forms[transaction.id].category.label(class="form-label") }}
-                                            {{ edit_forms[transaction.id].category(class="form-select") }}
-                                        </div>
-                                        <div class="mb-3">
-                                            {{ edit_forms[transaction.id].amount.label(class="form-label") }}
-                                            {{ edit_forms[transaction.id].amount(class="form-control") }}
-                                        </div>
-                                        <div class="mb-3">
-                                            {{ edit_forms[transaction.id].description.label(class="form-label") }}
-                                            {{ edit_forms[transaction.id].description(class="form-control") }}
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-primary">Submit Changes</button>
-                                        </div>
+                    </thead>
+                    <tbody id="transactionTable">
+                        {% for transaction in transactions_dict %}
+                            <tr>
+                                <td>{{ transaction.date }}</td>
+                                <td>{{ transaction.category }}</td>
+                                <td>{{ transaction.description }}</td>
+                                <td>${{ "{:.2f}".format(transaction.amount) }}</td>
+                                <td class="d-flex gap-2">
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#transactionModal-{{ transaction.id }}">Edit</button>
+                                    <form action="{{ url_for('delete_transaction', transaction_id=transaction.id) }}" method="POST">
+                                        <button class="btn btn-danger btn-sm">Delete</button>
                                     </form>
+                                    <!-- <button class="btn btn-danger btn-sm">Delete</button> -->
+                                </td>
+                            </tr>
+                            <div class="modal fade" id="transactionModal-{{ transaction.id }}" tabindex="-1" aria-labelledby="transactionModalLabel-{{ transaction.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h1 class="modal-title fs-5" id="transactionModalLabel-{{ transaction.id }}">Edit Transaction</h1>
+                                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{{url_for('edit_transaction', transaction_id=transaction.id) }}" method="POST">
+                                            <div class="mb-3">
+                                                {{ edit_forms[transaction.id].category.label(class="form-label") }}
+                                                {{ edit_forms[transaction.id].category(class="form-select") }}
+                                            </div>
+                                            <div class="mb-3">
+                                                {{ edit_forms[transaction.id].amount.label(class="form-label") }}
+                                                {{ edit_forms[transaction.id].amount(class="form-control") }}
+                                            </div>
+                                            <div class="mb-3">
+                                                {{ edit_forms[transaction.id].description.label(class="form-label") }}
+                                                {{ edit_forms[transaction.id].description(class="form-control") }}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Submit Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

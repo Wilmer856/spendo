@@ -47,24 +47,26 @@
             <div class="card">
                 <div class="card-header">Recent Transactions</div>
                 <div class="card-body">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Category</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
                                 <tr>
-                                    <td>{{ transaction.date }}</td>
-                                    <td>{{ transaction.category }}</td>
-                                    <td>${{ "{:.2f}".format(transaction.amount) }}</td>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                    <tr>
+                                        <td>{{ transaction.date }}</td>
+                                        <td>{{ transaction.category }}</td>
+                                        <td>${{ "{:.2f}".format(transaction.amount) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,22 +74,24 @@
             <div class="card">
                 <div class="card-header">Expenses by Category</div>
                 <div class="card-body">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Amount</th> 
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for category, amount in categories %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
                                 <tr>
-                                    <td>{{ category }}</td>
-                                    <td>${{ "{:.2f}".format(amount) }}</td>
+                                    <th>Category</th>
+                                    <th>Amount</th> 
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for category, amount in categories %}
+                                    <tr>
+                                        <td>{{ category }}</td>
+                                        <td>${{ "{:.2f}".format(amount) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -105,8 +109,9 @@
     <div class="row mt-4">
         <div class="col-md-12 text-center">
             <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#transactionModal">Add Transaction</button>
-            <button class="btn btn-secondary me-2">Settings</button>
-            <button class="btn btn-success">Export Data</button>
+            <form class="d-inline" action="/api/transactions/export" method="GET">
+                <button class="btn btn-success">Export Data</button>
+            </form>     
         </div>
     </div>
 

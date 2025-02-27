@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request, jsonify
+from flask import Flask, render_template, redirect, url_for, flash, session, request, jsonify, send_file
 from flask_bcrypt import Bcrypt
 from app import app
 from forms import LoginForm, RegisterForm, UpdateUserForm, ChangePasswordForm, AddTransactionForm, ApplyFilterForm
@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 import base64
+import tempfile
+import zipfile
 
 # Page not found
 @app.errorhandler(404)
@@ -30,8 +32,9 @@ def register():
     username = None
     form = RegisterForm()
     if form.validate_on_submit(): #validate data when submitted
-        user = User.query.filter_by(email=form.email.data).first()
-        if user is None:
+        user_by_email = User.query.filter_by(email=form.email.data).first()
+        user_by_username = User.query.filter_by(username=form.username.data).first()
+        if user_by_email is None and user_by_username is None:
             user = User(username=form.username.data, email=form.email.data, first_name=form.first_name.data, last_name=form.last_name.data)
             password = form.password.data
             user.set_password(password)
@@ -39,7 +42,8 @@ def register():
             db.session.add(user)
             db.session.commit()
         else:
-            print("User already exist")
+            flash("A user with that email or username already exists", "danger")
+            return render_template("register.html", form = form)
         form.username.data = ''
         form.email.data = ''
         form.password.data = ''
@@ -148,27 +152,44 @@ def logout():
 @app.route('/profile', methods=["GET", "POST"])
 @login_required
 def profile():
-    #TODO Add default profile pic with Initials
     form = UpdateUserForm()
     password_form = ChangePasswordForm()
-
-    if request.method == "POST":
-        current_user.username = request.form["username"]
-        current_user.email = request.form["email"]
-        current_user.first_name = request.form["first_name"]
-        current_user.last_name = request.form["last_name"]
-        current_user.set_full_name()
-        try:
-            db.session.commit()
-            flash("User updated successfully", "success")
-            return render_template('profile.html', form=form, password_form=password_form)
-        except:
-            flash("Error: Looks like there was an issue updating your profile", "danger")
-            return render_template('profile.html', form=form, password_form=password_form)
     form.username.data = current_user.username
     form.email.data = current_user.email
     form.first_name.data = current_user.first_name
     form.last_name.data = current_user.last_name
+    if request.method == "POST":
+        if current_user.email != request.form["email"]:
+            user_by_email = User.query.filter_by(email=request.form["email"]).first()
+            if user_by_email is None:
+                current_user.email = request.form["email"]
+            else: 
+                flash("Email is already taken", "danger")
+                return render_template('profile.html', form=form, password_form=password_form)
+            
+        if current_user.username != request.form["username"]:
+            user_by_username = User.query.filter_by(username=request.form["username"]).first()
+            if user_by_username is None:
+                current_user.username = request.form["username"]
+            else: 
+                flash("Username is already taken", "danger")
+                return render_template('profile.html', form=form, password_form=password_form)
+                    
+        current_user.first_name = request.form["first_name"]
+        current_user.last_name = request.form["last_name"]
+        current_user.set_full_name()
+
+        try:
+            db.session.commit()
+            flash("User updated successfully", "success")
+            form.username.data = current_user.username
+            form.email.data = current_user.email
+            form.first_name.data = current_user.first_name
+            form.last_name.data = current_user.last_name
+            return render_template('profile.html', form=form, password_form=password_form)
+        except:
+            flash("Error: Looks like there was an issue updating your profile", "danger")
+            return render_template('profile.html', form=form, password_form=password_form)
     return render_template('profile.html', form = form, password_form=password_form)
 
 @app.route('/profile/update_pass', methods=["POST"])
@@ -400,3 +421,111 @@ def delete_transaction(transaction_id):
         flash("Transaction deleted successfully!", "success")
     
     return redirect(url_for('transactions'))
+
+@app.route('/api/transactions/export', methods=["GET"])
+@login_required
+def export_data():
+    try:
+        transactions = Transaction.query.filter(current_user.id == Transaction.user_id).all()
+        df = pd.DataFrame([(t.category, t.amount, t.description, t.date) for t in transactions], columns=["category", "amount", "description", "date"])
+
+        csv_buffer = io.StringIO()
+
+        df.to_csv(csv_buffer, index=False)
+
+        response = send_file(
+            io.BytesIO(csv_buffer.getvalue().encode()),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='data.csv'
+        )
+        return response
+
+    except:
+        flash("Error exporting data", "danger")
+        return redirect(url_for("dashboard"))
+    
+@app.route("/api/transactions/report", methods=["GET"])
+@login_required
+def download_reports():
+    transactions = Transaction.query.filter(Transaction.user_id == current_user.id, Transaction.amount < 0).all()
+    all_deposits = Transaction.query.filter(Transaction.user_id == current_user.id, Transaction.amount > 0).all()
+    df = pd.DataFrame([(t.category, abs(t.amount), t.date) for t in transactions], columns=["category", "amount", "date"])
+
+    if df.empty:
+        flash("No transactions available for reports.", "warning")
+        return redirect(url_for('reports'))
+
+    df["date"] = pd.to_datetime(df["date"]).dt.strftime('%Y-%m')
+    total_income = sum(t.amount for t in all_deposits)
+    total_expenses = sum(abs(t.amount) for t in transactions if datetime.now().month == int(df["date"].loc[0].split("-")[1]))
+    data = {"Income": total_income, "Expenses": total_expenses}
+    df_deposits = pd.DataFrame(data=data, index=["Amount"])
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        file_paths = []  # Store file paths for zipping
+
+        # Expenses by Category (Bar Chart)
+        plt.figure(figsize=(6, 4))
+        category_spending = df.groupby("category")["amount"].sum().reset_index()
+        category_spending = category_spending.sort_values(by="amount", ascending=False)
+        sns.barplot(data=category_spending, x="amount", y="category", palette="viridis")
+        plt.xlabel("Total Spending ($)")
+        plt.ylabel("Category")
+        plt.title("Expenses by Category")
+        file_path = f"{temp_dir}/expenses_by_category.png"
+        plt.savefig(file_path, bbox_inches='tight')
+        plt.close()
+        file_paths.append(file_path)
+
+        # Monthly Spending Trends (Line Chart)
+        plt.figure(figsize=(6, 4))
+        monthly_trends = df.groupby("date")["amount"].sum().reset_index()
+        sns.lineplot(data=monthly_trends, x="date", y="amount", marker="o", color="blue")
+        plt.xlabel("Month")
+        plt.ylabel("Total Spending ($)")
+        plt.title("Monthly Spending Trends")
+        plt.xticks(rotation=45)
+        file_path = f"{temp_dir}/monthly_trends.png"
+        plt.savefig(file_path, bbox_inches='tight')
+        plt.close()
+        file_paths.append(file_path)
+
+        # Top Spending Categories (Bar Chart)
+        plt.figure(figsize=(6, 4))
+        category_counts = df["category"].value_counts().reset_index()
+        category_counts.columns = ["category", "count"]
+        sns.barplot(data=category_counts, x="count", y="category", palette="coolwarm")
+        plt.xlabel("Number of Transactions")
+        plt.ylabel("Category")
+        plt.title("# of Transactions by Category")
+        file_path = f"{temp_dir}/top_spending_categories.png"
+        plt.savefig(file_path, bbox_inches='tight')
+        plt.close()
+        file_paths.append(file_path)
+
+        # Income VS Expenses (by month) (Bar Chart)
+        plt.figure(figsize=(6, 4))
+        sns.barplot(data=df_deposits, palette="viridis")
+        plt.xlabel("Category")
+        plt.ylabel("Total Amount ($)")
+        plt.title(f"Income vs. Expenses ({datetime.now().strftime('%B')}) ($)")
+        file_path = f"{temp_dir}/income_vs_expenses.png"
+        plt.savefig(file_path, bbox_inches='tight')
+        plt.close()
+        file_paths.append(file_path)
+
+        # Create ZIP file
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for file in file_paths:
+                zip_file.write(file, arcname=file.split("/")[-1])  # Store only the filename in ZIP
+
+        zip_buffer.seek(0)
+
+        return send_file(
+            zip_buffer,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name="transaction_reports.zip"
+        )
