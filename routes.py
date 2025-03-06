@@ -250,12 +250,9 @@ def reports():
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"]).dt.strftime('%Y-%m')
         total_income = sum(t.amount for t in all_deposits)
-        total_expenses = sum(abs(t.amount) for t in transactions if datetime.now().month == int(df["date"].loc[0].split("-")[1]))
+        total_expenses = sum(abs(t.amount) for index,t in enumerate(transactions) if datetime.now().month == int(df["date"].loc[index].split("-")[1]))
         data = {"Income": total_income, "Expenses": total_expenses}
         df_deposits = pd.DataFrame(data=data, index=["Amount"])
-        print(df["date"])
-        print(datetime.now().month)
-        print(int(df["date"].loc[0].split("-")[1]))
 
         # Expenses by Category (Bar Chart)
         plt.figure(figsize=(6, 4))
