@@ -66,9 +66,27 @@
           </div>
           <div class="card mb-4">
             <div class="card-body text-center">
-              <form action="/profile/delete" method="POST">
-                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
-              </form>
+              <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Account</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5">Are you sure you want to delete your account?</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/profile/delete" method="POST">
+                    <div class="mb-3">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                    <div class="mb-3">
+                      <button type="submit" class="btn btn-primary">Confirm</button>
+                    </div>
+                </form>
             </div>
           </div>
         </div>
