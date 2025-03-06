@@ -29,7 +29,6 @@ def page_not_found(e):
 
 @app.route('/register', methods=['GET','POST'])
 def register():
-    username = None
     form = RegisterForm()
     if form.validate_on_submit(): #validate data when submitted
         user_by_email = User.query.filter_by(email=form.email.data).first()
@@ -52,8 +51,6 @@ def register():
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-    username = None
-    password = None
     form = LoginForm()
     if form.validate_on_submit(): # validate data when submitted
         username = form.username.data
@@ -71,7 +68,7 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash("Invalid username or password", "danger")
-    return render_template("login.html", form = form, username=username, password=password) # pass in the data
+    return render_template("login.html", form = form) # pass in the data
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
@@ -225,7 +222,7 @@ def delete_profile():
     user = User.query.get(user_id)
 
     if user:
-        Transaction.query.filter_by(user_id=Transaction.user_id).delete()
+        Transaction.query.filter_by(user_id=current_user.id).delete()
 
         db.session.delete(user)
         db.session.commit()
@@ -438,8 +435,8 @@ def export_data():
         )
         return response
 
-    except:
-        flash("Error exporting data", "danger")
+    except Exception as e:
+        flash(f"Error exporting data: {str(e)}", "danger")
         return redirect(url_for("dashboard"))
     
 @app.route("/api/transactions/report", methods=["GET"])
@@ -460,58 +457,12 @@ def download_reports():
     df_deposits = pd.DataFrame(data=data, index=["Amount"])
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        file_paths = []  # Store file paths for zipping
-
-        # Expenses by Category (Bar Chart)
-        plt.figure(figsize=(6, 4))
-        category_spending = df.groupby("category")["amount"].sum().reset_index()
-        category_spending = category_spending.sort_values(by="amount", ascending=False)
-        sns.barplot(data=category_spending, x="amount", y="category", palette="viridis")
-        plt.xlabel("Total Spending ($)")
-        plt.ylabel("Category")
-        plt.title("Expenses by Category")
-        file_path = f"{temp_dir}/expenses_by_category.png"
-        plt.savefig(file_path, bbox_inches='tight')
-        plt.close()
-        file_paths.append(file_path)
-
-        # Monthly Spending Trends (Line Chart)
-        plt.figure(figsize=(6, 4))
-        monthly_trends = df.groupby("date")["amount"].sum().reset_index()
-        sns.lineplot(data=monthly_trends, x="date", y="amount", marker="o", color="blue")
-        plt.xlabel("Month")
-        plt.ylabel("Total Spending ($)")
-        plt.title("Monthly Spending Trends")
-        plt.xticks(rotation=45)
-        file_path = f"{temp_dir}/monthly_trends.png"
-        plt.savefig(file_path, bbox_inches='tight')
-        plt.close()
-        file_paths.append(file_path)
-
-        # Top Spending Categories (Bar Chart)
-        plt.figure(figsize=(6, 4))
-        category_counts = df["category"].value_counts().reset_index()
-        category_counts.columns = ["category", "count"]
-        sns.barplot(data=category_counts, x="count", y="category", palette="coolwarm")
-        plt.xlabel("Number of Transactions")
-        plt.ylabel("Category")
-        plt.title("# of Transactions by Category")
-        file_path = f"{temp_dir}/top_spending_categories.png"
-        plt.savefig(file_path, bbox_inches='tight')
-        plt.close()
-        file_paths.append(file_path)
-
-        # Income VS Expenses (by month) (Bar Chart)
-        plt.figure(figsize=(6, 4))
-        sns.barplot(data=df_deposits, palette="viridis")
-        plt.xlabel("Category")
-        plt.ylabel("Total Amount ($)")
-        plt.title(f"Income vs. Expenses ({datetime.now().strftime('%B')}) ($)")
-        file_path = f"{temp_dir}/income_vs_expenses.png"
-        plt.savefig(file_path, bbox_inches='tight')
-        plt.close()
-        file_paths.append(file_path)
-
+        file_paths = [
+            generate_plot(df, "expenses_by_category", "expenses_by_category", temp_dir),
+            generate_plot(df, "monthly_trends", "monthly_trends", temp_dir),
+            generate_plot(df, "top_spending_categories", "top_spending_categories", temp_dir),
+            generate_plot(df, "income_vs_expenses", "income_vs_expenses", temp_dir, df_deposits)
+        ]
         # Create ZIP file
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
@@ -526,3 +477,42 @@ def download_reports():
             as_attachment=True,
             download_name="transaction_reports.zip"
         )
+    
+def generate_plot(df, plot_type, filename, temp_dir, df_deposits=None):
+    plt.figure(figsize=(6, 4))
+
+    if plot_type == "expenses_by_category":
+        category_spending = df.groupby("category")["amount"].sum().reset_index()
+        category_spending = category_spending.sort_values(by="amount", ascending=False)
+        sns.barplot(data=category_spending, x="amount", y="category", palette="viridis")
+        plt.xlabel("Total Spending ($)")
+        plt.ylabel("Category")
+        plt.title("Expenses by Category")
+
+    elif plot_type == "monthly_trends":
+        monthly_trends = df.groupby("date")["amount"].sum().reset_index()
+        sns.lineplot(data=monthly_trends, x="date", y="amount", marker="o", color="blue")
+        plt.xlabel("Month")
+        plt.ylabel("Total Spending ($)")
+        plt.title("Monthly Spending Trends")
+        plt.xticks(rotation=45)
+
+    elif plot_type == "top_spending_categories":
+        category_counts = df["category"].value_counts().reset_index()
+        category_counts.columns = ["category", "count"]
+        sns.barplot(data=category_counts, x="count", y="category", palette="coolwarm")
+        plt.xlabel("Number of Transactions")
+        plt.ylabel("Category")
+        plt.title("# of Transactions by Category")
+
+    elif plot_type == "income_vs_expenses":
+        if df_deposits is not None:
+            sns.barplot(data=df_deposits, palette="viridis")
+            plt.xlabel("Category")
+            plt.ylabel("Total Amount ($)")
+            plt.title(f"Income vs. Expenses ({datetime.now().strftime('%B')}) ($)")
+
+    file_path = f"{temp_dir}/{filename}.png"
+    plt.savefig(file_path, bbox_inches='tight')
+    plt.close()
+    return file_path
