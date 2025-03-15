@@ -27,6 +27,10 @@ def page_not_found(e):
 def page_not_found(e):
     return render_template("500.html"), 500
 
+@app.route('/', methods=['GET'])
+def root_page():
+    return redirect(url_for('login'))
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     form = RegisterForm()
@@ -47,6 +51,8 @@ def register():
         form.email.data = ''
         form.password.data = ''
         return redirect(url_for('login'))
+    if current_user:
+        return redirect(url_for('dashboard'))
     return render_template("register.html", form = form) # pass in the data
 
 @app.route('/login', methods=['GET','POST'])
@@ -68,6 +74,8 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash("Invalid username or password", "danger")
+    if current_user:
+        return redirect(url_for('dashboard'))
     return render_template("login.html", form = form) # pass in the data
 
 @app.route('/dashboard', methods=['GET', 'POST'])
